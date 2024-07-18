@@ -1,5 +1,6 @@
 import customtkinter as ctk
 import pandas as pd
+import os
 from PIL import Image, ImageTk
 from password_generator import generate
 
@@ -8,6 +9,8 @@ class PasswordManager(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.title("Password Manager App")
+        # Disable window resizing
+        self.resizable(False, False)
 
         lock_image = Image.open("locked.png")
         # Resizing the image
@@ -93,8 +96,12 @@ class PasswordManager(ctk.CTk):
             row=3, column=0, columnspan=2, pady=5, sticky='ew')
 
     def add_password(self):
-        if "" in (self.website_entry.get(), self.email_entry.get(), self.password_entry.get()):
+        website, email_username, password = self.website_entry.get(
+        ), self.email_entry.get(), self.password_entry.get()
+        if "" in (website, email_username, password):
             self.error_label.configure(text="No field should be empty")
+        elif not self.open_popup(website, email_username, password):
+            pass
         else:
             df = pd.read_csv("data.csv")
             new_data = {
@@ -109,23 +116,47 @@ class PasswordManager(ctk.CTk):
 
     def clear_entryboxes(self):
         self.website_entry.delete(0, ctk.END)
-        # self.website_entry.configure(placeholder_text="Enter Website")
-        # self.website_entry.configure(state='disabled')
-        # # # self.website_entry.configure(state='normal')
-
         self.email_entry.delete(0, ctk.END)
-        # self.email_entry.configure(placeholder_text="Enter Website")
-        # self.email_entry.configure(state='disabled')
-        # # # self.email_entry.configure(state='normal')
-
         self.password_entry.delete(0, ctk.END)
-        # self.password_entry.configure(placeholder_text="Enter Website")
-        # self.password_entry.configure(state='disabled')
-        # # # self.password_entry.configure(state='normal')
 
-    # def enable_entry(self, event, entry_box):
-    #     entry_box.configure(state='normal')
-    #     entry_box.focus_set()
+    def open_popup(self, website, email_username, password):
+        result = None  # To store the result from the popup
+
+        def on_yes():
+            nonlocal result
+            result = True
+            popup.destroy()
+
+        def on_no():
+            nonlocal result
+            result = False
+            popup.destroy()
+
+        popup = ctk.CTkToplevel()
+        popup.title("Confirmation")
+        popup.geometry("350x150")
+        # Make the popup window always on top
+        popup.attributes("-topmost", True)
+        popup.resizable(False, False)
+
+        message = f"WEBSITE: {website}\nEMAIL/USERNAME: {email_username}\nPASSWORD: {password}\nDo you want to proceed?"
+        label = ctk.CTkLabel(popup, text=message, wraplength=350, justify="left", font=(
+            "Arial", 15))
+        label.pack(pady=10)
+
+        button_frame = ctk.CTkFrame(popup, fg_color="#242424")
+        button_frame.pack(pady=10)
+
+        yes_button = ctk.CTkButton(button_frame, text="Yes", command=on_yes)
+        yes_button.grid(row=0, column=0, padx=10, pady=5)
+
+        no_button = ctk.CTkButton(button_frame, text="No", command=on_no, fg_color="white",
+                                  hover_color="#ccc", text_color="black")
+        no_button.grid(row=0, column=1, padx=10, pady=5)
+
+        popup.wait_window()  # Wait until the popup window is closed
+
+        return result
 
     def generate_password(self):
         self.password = generate()
