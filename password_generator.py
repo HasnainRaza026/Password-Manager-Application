@@ -2,7 +2,7 @@ import random as rn
 import string as st
 
 
-def generate(length=15, numbers=True, special_chr=True):
+def generate(length=21, numbers=True, special_chr=True):
     characters = st.ascii_letters
     if numbers:
         characters += st.digits
@@ -16,6 +16,8 @@ def generate(length=15, numbers=True, special_chr=True):
 
     while not meet_criteria or len(password) < length:
         new_chr = rn.choice(characters)
+        while new_chr in ('\\', "'", '"'):
+            new_chr = rn.choice(characters)
         password += new_chr
 
         if new_chr in st.digits:
@@ -35,7 +37,6 @@ def generate(length=15, numbers=True, special_chr=True):
 if __name__ == "__main__":
     pwd_length = int(input("Enter the length of your password: "))
     dig = input("Do you want to add digits (y/n): ").lower() == "y"
-    spec_chr = input(
-        "Do you want to add special character (y/n): ").lower() == "y"
+    spec_chr = input("Do you want to add special character (y/n): ").lower() == "y"
 
     print(generate(pwd_length, dig, spec_chr))
